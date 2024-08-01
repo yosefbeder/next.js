@@ -1,6 +1,6 @@
 import classes from './red.module.css'
 
-export const Red = () => {
+export function RedButton() {
   return (
     <button className={classes.button}>My background should be red!</button>
   )

@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { Red } from '../components/red'
+import { RedButton } from '../components/red-button'
 
 export default function Home() {
   return (
     <>
       <Link href="/foo">/foo</Link>
-      {/* Red should be imported to be reproduced */}
-      <Red />
+      {/* RedButton should be imported to be reproduced */}
+      <RedButton />
     </>
   )
 }

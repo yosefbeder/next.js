@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 
-const DynamicImportRedButton = dynamic<{}>(() =>
-  import('../components/red').then((module) => module.Red)
+const DynamicImportRedButton = dynamic(() =>
+  import('../components/red-button').then((module) => module.RedButton)
 )
 
 export default function Foo() {

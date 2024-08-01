@@ -1,6 +1,6 @@
 import { nextTestSetup } from 'e2e-utils'
 
-describe('next-dynamic-33286', () => {
+describe('css-module-next-dynamic-along-with-import', () => {
   const { next } = nextTestSetup({
     files: __dirname,
   })
@@ -8,6 +8,10 @@ describe('next-dynamic-33286', () => {
   it('should be able to load the same css module with both next dynamic and import', async () => {
     const browser = await next.browser('/')
     await browser.elementByCss('a').click()
+
+    expect(await browser.elementByCss('button').text()).toBe(
+      'My background should be red!'
+    )
 
     expect(
       await browser.eval(
