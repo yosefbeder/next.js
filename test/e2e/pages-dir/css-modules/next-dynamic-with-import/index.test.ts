@@ -1,6 +1,6 @@
 import { nextTestSetup } from 'e2e-utils'
 
-describe('css-module-next-dynamic-along-with-import', () => {
+describe('css-module-loaded-with-both-next-dynamic-and-import', () => {
   const { next } = nextTestSetup({
     files: __dirname,
   })
