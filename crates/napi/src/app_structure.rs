@@ -17,10 +17,9 @@ use turbo_tasks::{
     ValueToString, Vc,
 };
 use turbo_tasks_fs::{DiskFileSystem, FileSystem, FileSystemPath};
-use turbo_tasks_memory::MemoryBackend;
 use turbopack_core::PROJECT_FILESYSTEM_NAME;
 
-use crate::register;
+use crate::{next_api::utils::NextBackend, register};
 
 #[turbo_tasks::function]
 async fn project_fs(project_dir: RcStr, watching: bool) -> Result<Vc<Box<dyn FileSystem>>> {
@@ -353,7 +352,7 @@ async fn get_value(
 
 #[napi]
 pub fn stream_entrypoints(
-    turbo_tasks: External<Arc<TurboTasks<MemoryBackend>>>,
+    turbo_tasks: External<Arc<TurboTasks<NextBackend>>>,
     root_dir: String,
     project_dir: String,
     page_extensions: Vec<String>,
@@ -399,7 +398,7 @@ pub fn stream_entrypoints(
 
 #[napi]
 pub async fn get_entrypoints(
-    turbo_tasks: External<Arc<TurboTasks<MemoryBackend>>>,
+    turbo_tasks: External<Arc<TurboTasks<NextBackend>>>,
     root_dir: String,
     project_dir: String,
     page_extensions: Vec<String>,
