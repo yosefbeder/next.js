@@ -19,6 +19,7 @@ use anyhow::Result;
 use auto_hash_map::{AutoMap, AutoSet};
 use dashmap::DashMap;
 pub use operation::AnyOperation;
+use operation::ConnectChildOperation;
 use parking_lot::{Condvar, Mutex};
 use rustc_hash::FxHasher;
 use smallvec::smallvec;
