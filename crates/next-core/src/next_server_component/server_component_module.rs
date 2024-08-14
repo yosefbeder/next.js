@@ -4,7 +4,7 @@ use turbo_tasks::{RcStr, Vc};
 use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{
     asset::{Asset, AssetContent},
-    chunk::{ChunkItem, ChunkItemExt, ChunkType, ChunkableModule, ChunkingContext},
+    chunk::{ChunkItem, ChunkItemExt, ChunkType, ChunkableModule, ChunkingContext, ModuleIdJs},
     ident::AssetIdent,
     module::Module,
     reference::ModuleReferences,
@@ -15,7 +15,6 @@ use turbopack_ecmascript::{
         EcmascriptChunkType, EcmascriptExports,
     },
     references::esm::EsmExports,
-    utils::StringifyJs,
 };
 
 use super::server_component_reference::NextServerComponentModuleReference;
@@ -131,7 +130,7 @@ impl EcmascriptChunkItem for BuildServerComponentChunkItem {
                 r#"
                     __turbopack_export_namespace__(__turbopack_import__({}));
                 "#,
-                StringifyJs(&module_id),
+                ModuleIdJs(&module_id),
             )
             .into(),
             ..Default::default()
