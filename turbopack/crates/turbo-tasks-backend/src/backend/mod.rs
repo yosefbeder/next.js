@@ -97,11 +97,8 @@ impl Default for TurboTasksBackend {
 impl TurboTasksBackend {
     pub fn new() -> Self {
         Self {
-            persisted_task_id_factory: IdFactoryWithReuse::new_with_range(
-                1,
-                (TRANSIENT_TASK_BIT - 1) as u64,
-            ),
-            transient_task_id_factory: IdFactoryWithReuse::new_with_range(
+            persisted_task_id_factory: IdFactoryWithReuse::new(1, (TRANSIENT_TASK_BIT - 1) as u64),
+            transient_task_id_factory: IdFactoryWithReuse::new(
                 TRANSIENT_TASK_BIT as u64,
                 u32::MAX as u64,
             ),
@@ -521,8 +518,14 @@ impl Backend for TurboTasksBackend {
                             else {
                                 unreachable!()
                             };
-                            CachedTaskType::run_resolve_native(*fn_type, *this, &**arg, turbo_tasks)
-                                .await
+                            CachedTaskType::run_resolve_native(
+                                *fn_type,
+                                *this,
+                                &**arg,
+                                task_id.is_transient(),
+                                turbo_tasks,
+                            )
+                            .await
                         }) as Pin<Box<dyn Future<Output = _> + Send + '_>>,
                     )
                 }
@@ -550,6 +553,7 @@ impl Backend for TurboTasksBackend {
                                 method_name.clone(),
                                 *this,
                                 &**arg,
+                                task_id.is_transient(),
                                 turbo_tasks,
                             )
                             .await

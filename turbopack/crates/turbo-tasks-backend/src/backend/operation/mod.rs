@@ -203,6 +203,10 @@ impl<'a> TaskGuard<'a> {
         self.task.get(key)
     }
 
+    pub fn has_key(&self, key: &CachedDataItemKey) -> bool {
+        self.task.has_key(key)
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&CachedDataItemKey, &CachedDataItemValue)> {
         self.task.iter()
     }
