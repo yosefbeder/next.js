@@ -31,7 +31,8 @@ use turbo_tasks::{
     event::EventListener,
     registry,
     util::IdFactoryWithReuse,
-    CellId, RawVc, TaskId, TraitTypeId, TurboTasksBackendApi, ValueTypeId, TRANSIENT_TASK_BIT,
+    CellId, FunctionId, RawVc, TaskId, TraitTypeId, TurboTasksBackendApi, ValueTypeId,
+    TRANSIENT_TASK_BIT,
 };
 
 use self::{operation::ExecuteContext, storage::Storage};
@@ -290,6 +291,13 @@ impl TurboTasksBackend {
 
         todo!("Cell {cell:?} is not available, recompute task or error: {task:#?}");
     }
+
+    fn lookup_task_type(&self, task_id: TaskId) -> Option<Arc<CachedTaskType>> {
+        if let Some(task_type) = self.task_cache.lookup_reverse(&task_id) {
+            return Some(task_type);
+        }
+        None
+    }
 }
 
 impl Backend for TurboTasksBackend {
@@ -373,11 +381,16 @@ impl Backend for TurboTasksBackend {
     }
 
     fn get_task_description(&self, task: TaskId) -> std::string::String {
-        let task_type = self
-            .task_cache
-            .lookup_reverse(&task)
-            .expect("Task not found");
+        let task_type = self.lookup_task_type(task).expect("Task not found");
         task_type.to_string()
+    }
+
+    fn try_get_function_id(&self, task_id: TaskId) -> Option<FunctionId> {
+        self.lookup_task_type(task_id)
+            .and_then(|task_type| match &*task_type {
+                CachedTaskType::Native { fn_type, .. } => Some(*fn_type),
+                _ => None,
+            })
     }
 
     type ExecutionScopeFuture<T> = T where T: Future<Output = Result<()>> + Send + 'static;
@@ -502,7 +515,7 @@ impl Backend for TurboTasksBackend {
             start_event.notify(usize::MAX);
         }
 
-        let (span, future) = if let Some(task_type) = self.task_cache.lookup_reverse(&task_id) {
+        let (span, future) = if let Some(task_type) = self.lookup_task_type(task_id) {
             match &*task_type {
                 CachedTaskType::Native { fn_type, this, arg } => (
                     registry::get_function(*fn_type).span(),
