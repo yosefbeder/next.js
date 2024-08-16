@@ -352,12 +352,13 @@ impl TurboFn {
             parse_quote! {
                 {
                     #assertions
-                    let turbo_tasks_transient = #( turbo_tasks::TaskInput::is_transient(&#inputs) ||)* false;
+                    let turbo_tasks_this = #converted_this;
+                    let turbo_tasks_transient = turbo_tasks_this.is_transient() #( || turbo_tasks::TaskInput::is_transient(&#inputs))*;
                     <#output as turbo_tasks::task::TaskOutput>::try_from_raw_vc(
                         turbo_tasks::trait_call(
                             *#trait_type_id_ident,
                             std::borrow::Cow::Borrowed(stringify!(#ident)),
-                            #converted_this,
+                            turbo_tasks_this,
                             Box::new((#(#inputs,)*)) as Box<dyn turbo_tasks::MagicAny>,
                             turbo_tasks_transient,
                         )
@@ -383,11 +384,12 @@ impl TurboFn {
             parse_quote! {
                 {
                     #assertions
-                    let turbo_tasks_transient = #( turbo_tasks::TaskInput::is_transient(&#inputs) ||)* false;
+                    let turbo_tasks_this = #converted_this;
+                    let turbo_tasks_transient = turbo_tasks_this.is_transient() #( || turbo_tasks::TaskInput::is_transient(&#inputs))*;
                     <#output as turbo_tasks::task::TaskOutput>::try_from_raw_vc(
                         turbo_tasks::dynamic_this_call(
                             *#native_function_id_ident,
-                            #converted_this,
+                            turbo_tasks_this,
                             Box::new((#(#inputs,)*)) as Box<dyn turbo_tasks::MagicAny>,
                             turbo_tasks_transient
                         )
