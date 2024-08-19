@@ -189,6 +189,7 @@ impl ProjectContainer {
 }
 
 impl ProjectContainer {
+    #[tracing::instrument(level = "info", name = "initialize project", skip_all)]
     pub async fn initialize(self: Vc<Self>, options: ProjectOptions) -> Result<()> {
         self.await?.options_state.set(Some(options));
         let project = self.project();
@@ -205,6 +206,7 @@ impl ProjectContainer {
         Ok(())
     }
 
+    #[tracing::instrument(level = "info", name = "update project", skip_all)]
     pub async fn update(self: Vc<Self>, options: PartialProjectOptions) -> Result<()> {
         let PartialProjectOptions {
             root_path,
