@@ -10,6 +10,9 @@ use turbo_tasks_hash::{encode_hex, hash_xxh3_hash64};
 
 use crate::asset::AssetContent;
 
+#[turbo_tasks::value(transparent)]
+pub struct OptionVersionedContent(Option<Vc<Box<dyn VersionedContent>>>);
+
 /// The content of an [Asset] alongside its version.
 #[turbo_tasks::value_trait]
 pub trait VersionedContent {
@@ -46,7 +49,7 @@ pub trait VersionedContent {
         Ok(if *from_id == *to_id {
             Update::None.into()
         } else {
-            Update::Total(TotalUpdate { to: to_ref }).into()
+            Update::Total(Some(TotalUpdate { to: to_ref })).into()
         })
     }
 }
@@ -115,6 +118,9 @@ impl VersionedContentExt for AssetContent {
     }
 }
 
+#[turbo_tasks::value(transparent)]
+pub struct OptionVersion(Option<Vc<Box<dyn Version>>>);
+
 /// Describes the current version of an object, and how to update them from an
 /// earlier version.
 #[turbo_tasks::value_trait]
@@ -170,7 +176,7 @@ impl Version for NotFoundVersion {
 pub enum Update {
     /// The asset can't be meaningfully updated while the app is running, so the
     /// whole thing needs to be replaced.
-    Total(TotalUpdate),
+    Total(Option<TotalUpdate>),
 
     /// The asset can (potentially) be updated to a new version by applying a
     /// specific set of instructions.
@@ -234,6 +240,9 @@ impl Version for FileHashVersion {
         Ok(Vc::cell(self.hash.clone()))
     }
 }
+
+#[turbo_tasks::value(transparent)]
+pub struct OptionVersionState(Option<Vc<VersionState>>);
 
 #[turbo_tasks::value]
 pub struct VersionState {

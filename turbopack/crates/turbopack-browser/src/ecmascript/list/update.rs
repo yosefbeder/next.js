@@ -60,11 +60,11 @@ pub(super) async fn update_chunk_list(
         from
     } else {
         // It's likely `from_version` is `NotFoundVersion`.
-        return Ok(Update::Total(TotalUpdate {
+        return Ok(Update::Total(Some(TotalUpdate {
             to: Vc::upcast::<Box<dyn Version>>(to_version)
                 .into_trait_ref()
                 .await?,
-        })
+        }))
         .cell());
     };
 
@@ -146,11 +146,11 @@ pub(super) async fn update_chunk_list(
                 // happens, we have no better option than to short-circuit
                 // the update.
                 Update::Total(_) => {
-                    return Ok(Update::Total(TotalUpdate {
+                    return Ok(Update::Total(Some(TotalUpdate {
                         to: Vc::upcast::<Box<dyn Version>>(to_version)
                             .into_trait_ref()
                             .await?,
-                    })
+                    }))
                     .cell());
                 }
                 Update::Partial(partial) => {

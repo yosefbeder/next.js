@@ -148,11 +148,11 @@ pub(super) async fn update_ecmascript_merged_chunk(
         from
     } else {
         // It's likely `from_version` is `NotFoundVersion`.
-        return Ok(Update::Total(TotalUpdate {
+        return Ok(Update::Total(Some(TotalUpdate {
             to: Vc::upcast::<Box<dyn Version>>(to_merged_version)
                 .into_trait_ref()
                 .await?,
-        }));
+        })));
     };
 
     let to = to_merged_version.await?;

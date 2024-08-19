@@ -64,11 +64,11 @@ async fn get_update_stream_item(
                 .await?,
             );
 
-            let update = Update::Total(TotalUpdate {
+            let update = Update::Total(Some(TotalUpdate {
                 to: Vc::upcast::<Box<dyn Version>>(NotFoundVersion::new())
                     .into_trait_ref()
                     .await?,
-            })
+            }))
             .cell();
             return Ok(UpdateStreamItem::Found {
                 update: update.await?,
@@ -122,11 +122,11 @@ async fn get_update_stream_item(
             }
 
             Ok(UpdateStreamItem::Found {
-                update: Update::Total(TotalUpdate {
+                update: Update::Total(Some(TotalUpdate {
                     to: Vc::upcast::<Box<dyn Version>>(proxy_result)
                         .into_trait_ref()
                         .await?,
-                })
+                }))
                 .cell()
                 .await?,
                 issues: plain_issues,
@@ -139,11 +139,11 @@ async fn get_update_stream_item(
                 // It might be removed in meantime, reload client
                 // TODO add special instructions for removed assets to handled it in a better
                 // way
-                Update::Total(TotalUpdate {
+                Update::Total(Some(TotalUpdate {
                     to: Vc::upcast::<Box<dyn Version>>(NotFoundVersion::new())
                         .into_trait_ref()
                         .await?,
-                })
+                }))
                 .cell()
             } else {
                 Update::None.cell()
@@ -225,7 +225,7 @@ impl UpdateStream {
                         Ok(UpdateStreamItem::Found { update, .. }) => {
                             match &**update {
                                 Update::Partial(PartialUpdate { to, .. })
-                                | Update::Total(TotalUpdate { to }) => {
+                                | Update::Total(Some(TotalUpdate { to })) => {
                                     version_state
                                         .set(to.clone())
                                         .await
@@ -234,7 +234,7 @@ impl UpdateStream {
                                     Some(item)
                                 }
                                 // Do not propagate empty updates.
-                                Update::None => {
+                                Update::None | Update::Total(None) => {
                                     if has_issues || issues_changed {
                                         Some(item)
                                     } else {
