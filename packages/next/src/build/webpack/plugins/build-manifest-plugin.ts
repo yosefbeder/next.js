@@ -19,6 +19,7 @@ import { ampFirstEntryNamesMap } from './next-drop-client-page-plugin'
 import { getSortedRoutes } from '../../../shared/lib/router/utils'
 import { spans } from './profiling-plugin'
 import { Span } from '../../../trace'
+import { basename, dirname, extname, sep } from 'path'
 
 type DeepMutable<T> = { -readonly [P in keyof T]: DeepMutable<T[P]> }
 
@@ -273,6 +274,8 @@ export default class BuildManifestPlugin {
         if (SYSTEM_ENTRYPOINTS.has(entrypoint.name)) continue
         const pagePath = getRouteFromEntrypoint(entrypoint.name)
 
+        console.log({ pagePath, entrypoint, entrypointName: entrypoint.name })
+
         if (!pagePath) {
           continue
         }
@@ -280,6 +283,50 @@ export default class BuildManifestPlugin {
         const filesForPage = getEntrypointFiles(entrypoint)
 
         assetMap.pages[pagePath] = [...new Set([...mainFiles, ...filesForPage])]
+      }
+
+      const _handleBlock = (block: any) => {
+        block.blocks.forEach(_handleBlock)
+        const chunkGroup = compilation.chunkGraph.getBlockChunkGroup(block)
+        for (const dependency of block.dependencies) {
+          if (dependency.type.startsWith('import()')) {
+            const originRequest =
+              compilation.moduleGraph.getParentModule(dependency)?.resource
+
+            const files = new Set<string>()
+
+            if (chunkGroup) {
+              for (const chunk of chunkGroup.chunks) {
+                chunk.files.forEach((file: string) => {
+                  if (
+                    (file.endsWith('.js') || file.endsWith('.css')) &&
+                    file.match(/^static\/(chunks|css)\//)
+                  ) {
+                    files.add(file)
+                  }
+                })
+              }
+            }
+
+            const foo =
+              basename(dirname(originRequest)) +
+              sep +
+              basename(originRequest, extname(originRequest))
+            const pagePath = getRouteFromEntrypoint(foo)
+
+            if (!pagePath) {
+              continue
+            }
+
+            assetMap.pages[pagePath] = [
+              ...new Set([...assetMap.pages[pagePath], ...Array.from(files)]),
+            ]
+          }
+        }
+      }
+
+      for (const module of compilation.modules) {
+        module.blocks.forEach(_handleBlock)
       }
 
       if (!this.isDevFallback) {
