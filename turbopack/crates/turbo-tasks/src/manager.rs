@@ -439,6 +439,7 @@ impl CurrentGlobalTaskState {
     fn create_local_task(
         &mut self,
         ty: CachedTaskType,
+        // if this is a `CachedTaskType::Resolve*`, we'll spawn another task with this persistence
         persistence: TaskPersistence,
     ) -> LocalTaskId {
         self.local_tasks
@@ -475,7 +476,7 @@ struct CurrentLocalTaskState {
     local_task_id: Option<LocalTaskId>,
 
     /// A unique identifier created for each unique[`CurrentLocalTaskState`]. Used to check that
-    /// [`CurrentTaskState::local_cells`] are valid for the current [`RawVc::LocalCell`].
+    /// [`CurrentTaskState::local_cells`] are valid for the currant [`RawVc::LocalCell`].
     execution_id: ExecutionId,
 
     /// The function's metadata if this is a persistent task. Contains information about arguments
@@ -678,28 +679,32 @@ impl<B: Backend + 'static> TurboTasks<B> {
         if registry::get_function(func).arg_meta.is_resolved(&*arg) {
             return self.native_call(func, arg, persistence);
         }
+        let task_type = CachedTaskType::ResolveNative {
+            fn_type: func,
+            this: None,
+            arg,
+        };
+        #[cfg(feature = "local_resolution")]
+        return CURRENT_GLOBAL_TASK_STATE.with(move |gts| {
+            let mut gts_write = gts.write().unwrap();
+            let local_task_id = gts_write.create_local_task(task_type, persistence);
+            RawVc::LocalOutput(gts_write.task_id, local_task_id)
+        });
+        #[cfg(not(feature = "local_resolution"))]
         match persistence {
             TaskPersistence::LocalCells => {
                 todo!("bgw: local tasks");
             }
             TaskPersistence::Transient => {
                 RawVc::TaskOutput(self.backend.get_or_create_transient_task(
-                    CachedTaskType::ResolveNative {
-                        fn_type: func,
-                        this: None,
-                        arg,
-                    },
+                    task_type,
                     current_task("turbo_function calls"),
                     self,
                 ))
             }
             TaskPersistence::Persistent => {
                 RawVc::TaskOutput(self.backend.get_or_create_persistent_task(
-                    CachedTaskType::ResolveNative {
-                        fn_type: func,
-                        this: None,
-                        arg,
-                    },
+                    task_type,
                     current_task("turbo_function calls"),
                     self,
                 ))
@@ -722,7 +727,14 @@ impl<B: Backend + 'static> TurboTasks<B> {
             this: Some(this),
             arg,
         };
-        match persistence {
+        #[cfg(feature = "local_resolution")]
+        return CURRENT_GLOBAL_TASK_STATE.with(move |gts| {
+            let mut gts_write = gts.write().unwrap();
+            let local_task_id = gts_write.create_local_task(task_type, persistence);
+            RawVc::LocalOutput(gts_write.task_id, local_task_id)
+        });
+        #[cfg(not(feature = "local_resolution"))]
+        return match persistence {
             TaskPersistence::LocalCells => {
                 todo!("bgw: local tasks");
             }
@@ -740,7 +752,7 @@ impl<B: Backend + 'static> TurboTasks<B> {
                     self,
                 ))
             }
-        }
+        };
     }
 
     pub fn trait_call(
@@ -772,7 +784,15 @@ impl<B: Backend + 'static> TurboTasks<B> {
             this,
             arg,
         };
-        match persistence {
+
+        #[cfg(feature = "local_resolution")]
+        return CURRENT_GLOBAL_TASK_STATE.with(move |gts| {
+            let mut gts_write = gts.write().unwrap();
+            let local_task_id = gts_write.create_local_task(task_type, persistence);
+            RawVc::LocalOutput(gts_write.task_id, local_task_id)
+        });
+        #[cfg(not(feature = "local_resolution"))]
+        return match persistence {
             TaskPersistence::LocalCells => {
                 todo!("bgw: local tasks");
             }
@@ -790,7 +810,7 @@ impl<B: Backend + 'static> TurboTasks<B> {
                     self,
                 ))
             }
-        }
+        };
     }
 
     #[track_caller]
@@ -2165,12 +2185,17 @@ pub(crate) fn read_local_cell(
 }
 
 pub(crate) async fn read_local_output(
-    _this: &dyn TurboTasksApi,
-    _task_id: TaskId,
-    _local_output_id: LocalTaskId,
-    _consistency: ReadConsistency,
+    this: &dyn TurboTasksApi,
+    parent_task_id: TaskId,
+    local_task_id: LocalTaskId,
+    consistency: ReadConsistency,
 ) -> Result<RawVc> {
-    todo!("bgw: local outputs");
+    loop {
+        match this.try_read_local_output(parent_task_id, local_task_id, consistency)? {
+            Ok(raw_vc) => return Ok(raw_vc),
+            Err(event_listener) => event_listener.await,
+        }
+    }
 }
 
 /// Panics if the [`ExecutionId`] does not match the current task's
