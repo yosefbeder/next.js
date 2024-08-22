@@ -938,18 +938,35 @@ impl<C: Comments> VisitMut for ServerActions<C> {
             // If it's compiled in the client layer, each export field needs to be
             // wrapped by a reference creation call.
             let create_ref_ident = private_ident!("createServerReference");
+            let call_server_ident = private_ident!("callServer");
+            let find_source_map_url_ident = private_ident!("findSourceMapURL");
+
             if !self.config.is_react_server_layer {
                 // import { createServerReference } from
                 // 'private-next-rsc-action-client-wrapper'
                 // createServerReference("action_id")
                 new.push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
                     span: DUMMY_SP,
-                    specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                        span: DUMMY_SP,
-                        local: create_ref_ident.clone(),
-                        imported: None,
-                        is_type_only: false,
-                    })],
+                    specifiers: vec![
+                        ImportSpecifier::Named(ImportNamedSpecifier {
+                            span: DUMMY_SP,
+                            local: create_ref_ident.clone(),
+                            imported: None,
+                            is_type_only: false,
+                        }),
+                        ImportSpecifier::Named(ImportNamedSpecifier {
+                            span: DUMMY_SP,
+                            local: call_server_ident.clone(),
+                            imported: None,
+                            is_type_only: false,
+                        }),
+                        ImportSpecifier::Named(ImportNamedSpecifier {
+                            span: DUMMY_SP,
+                            local: find_source_map_url_ident.clone(),
+                            imported: None,
+                            is_type_only: false,
+                        }),
+                    ],
                     src: Box::new(Str {
                         span: DUMMY_SP,
                         value: "private-next-rsc-action-client-wrapper".into(),
@@ -976,7 +993,13 @@ impl<C: Comments> VisitMut for ServerActions<C> {
                                     callee: Callee::Expr(Box::new(Expr::Ident(
                                         create_ref_ident.clone(),
                                     ))),
-                                    args: vec![action_id.as_arg()],
+                                    args: vec![
+                                        action_id.as_arg(),
+                                        call_server_ident.clone().as_arg(),
+                                        Expr::undefined(DUMMY_SP).as_arg(),
+                                        find_source_map_url_ident.clone().as_arg(),
+                                        "default".as_arg(),
+                                    ],
                                     type_args: None,
                                 })),
                             },
@@ -1000,7 +1023,13 @@ impl<C: Comments> VisitMut for ServerActions<C> {
                                             callee: Callee::Expr(Box::new(Expr::Ident(
                                                 create_ref_ident.clone(),
                                             ))),
-                                            args: vec![action_id.as_arg()],
+                                            args: vec![
+                                                action_id.as_arg(),
+                                                call_server_ident.clone().as_arg(),
+                                                Expr::undefined(DUMMY_SP).as_arg(),
+                                                find_source_map_url_ident.clone().as_arg(),
+                                                export_name.clone().as_arg(),
+                                            ],
                                             type_args: None,
                                         }))),
                                         definite: false,
