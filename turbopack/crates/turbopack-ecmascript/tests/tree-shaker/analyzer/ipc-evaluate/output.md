@@ -254,7 +254,7 @@ import "./index";
 ## Part 1
 ```js
 const queue = [];
-export { queue as _ } from "__TURBOPACK_VAR__" assert {
+export { queue as a } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -262,7 +262,7 @@ export { queue as _ } from "__TURBOPACK_VAR__" assert {
 ## Part 2
 ```js
 import { IPC } from "./index";
-export { IPC as _ } from "__TURBOPACK_VAR__" assert {
+export { IPC as b } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -272,11 +272,11 @@ export { IPC as _ } from "__TURBOPACK_VAR__" assert {
 import "__TURBOPACK_PART__" assert {
     __turbopack_part__: 2
 };
-import { _ as IPC } from "__TURBOPACK_PART__" assert {
+import { b as IPC } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 2
 };
 const ipc = IPC;
-export { ipc as _ } from "__TURBOPACK_VAR__" assert {
+export { ipc as c } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -292,10 +292,10 @@ import "__TURBOPACK_PART__" assert {
 import "__TURBOPACK_PART__" assert {
     __turbopack_part__: 0
 };
-import { _ as ipc } from "__TURBOPACK_PART__" assert {
+import { c as ipc } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 3
 };
-import { _ as queue } from "__TURBOPACK_PART__" assert {
+import { a as queue } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 1
 };
 const run = async (moduleFactory)=>{
@@ -389,7 +389,7 @@ const run = async (moduleFactory)=>{
         }
     }
 };
-export { run as _ } from "__TURBOPACK_VAR__" assert {
+export { run as d } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -410,7 +410,7 @@ import "__TURBOPACK_PART__" assert {
 import "__TURBOPACK_PART__" assert {
     __turbopack_part__: 4
 };
-import { _ as run } from "__TURBOPACK_PART__" assert {
+import { d as run } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 4
 };
 export { run };
@@ -456,7 +456,7 @@ import "./index";
 ## Part 1
 ```js
 const queue = [];
-export { queue as _ } from "__TURBOPACK_VAR__" assert {
+export { queue as a } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -464,7 +464,7 @@ export { queue as _ } from "__TURBOPACK_VAR__" assert {
 ## Part 2
 ```js
 import { IPC } from "./index";
-export { IPC as _ } from "__TURBOPACK_VAR__" assert {
+export { IPC as b } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -474,11 +474,11 @@ export { IPC as _ } from "__TURBOPACK_VAR__" assert {
 import "__TURBOPACK_PART__" assert {
     __turbopack_part__: 2
 };
-import { _ as IPC } from "__TURBOPACK_PART__" assert {
+import { b as IPC } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 2
 };
 const ipc = IPC;
-export { ipc as _ } from "__TURBOPACK_VAR__" assert {
+export { ipc as c } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -494,10 +494,10 @@ import "__TURBOPACK_PART__" assert {
 import "__TURBOPACK_PART__" assert {
     __turbopack_part__: 0
 };
-import { _ as ipc } from "__TURBOPACK_PART__" assert {
+import { c as ipc } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 3
 };
-import { _ as queue } from "__TURBOPACK_PART__" assert {
+import { a as queue } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 1
 };
 const run = async (moduleFactory)=>{
@@ -591,7 +591,7 @@ const run = async (moduleFactory)=>{
         }
     }
 };
-export { run as _ } from "__TURBOPACK_VAR__" assert {
+export { run as d } from "__TURBOPACK_VAR__" assert {
     __turbopack_var__: true
 };
 
@@ -612,7 +612,7 @@ import "__TURBOPACK_PART__" assert {
 import "__TURBOPACK_PART__" assert {
     __turbopack_part__: 4
 };
-import { _ as run } from "__TURBOPACK_PART__" assert {
+import { d as run } from "__TURBOPACK_PART__" assert {
     __turbopack_part__: 4
 };
 export { run };
