@@ -274,8 +274,6 @@ export default class BuildManifestPlugin {
         if (SYSTEM_ENTRYPOINTS.has(entrypoint.name)) continue
         const pagePath = getRouteFromEntrypoint(entrypoint.name)
 
-        console.log({ pagePath, entrypoint, entrypointName: entrypoint.name })
-
         if (!pagePath) {
           continue
         }
@@ -285,41 +283,50 @@ export default class BuildManifestPlugin {
         assetMap.pages[pagePath] = [...new Set([...mainFiles, ...filesForPage])]
       }
 
+      // ** Copied from `/build/webpack/react-loadable-plugin.ts` **
+      // This is allowed:
+      // import("./module"); <- ImportDependency
+
+      // We don't support that:
+      // import(/* webpackMode: "eager" */ "./module") <- ImportEagerDependency
+      // import(`./module/${param}`) <- ImportContextDependency
+
+      // Find all dependencies blocks which contains a `import()` dependency
       const _handleBlock = (block: any) => {
         block.blocks.forEach(_handleBlock)
         const chunkGroup = compilation.chunkGraph.getBlockChunkGroup(block)
+
+        const files = new Set<string>()
+        if (chunkGroup) {
+          for (const chunk of chunkGroup.chunks) {
+            chunk.files.forEach((file: string) => {
+              if (file.endsWith('.css') && file.match(/^static\/css\//)) {
+                files.add(file)
+              }
+            })
+          }
+        }
+
         for (const dependency of block.dependencies) {
           if (dependency.type.startsWith('import()')) {
             const originRequest =
               compilation.moduleGraph.getParentModule(dependency)?.resource
+            if (!originRequest) return
 
-            const files = new Set<string>()
-
-            if (chunkGroup) {
-              for (const chunk of chunkGroup.chunks) {
-                chunk.files.forEach((file: string) => {
-                  if (
-                    (file.endsWith('.js') || file.endsWith('.css')) &&
-                    file.match(/^static\/(chunks|css)\//)
-                  ) {
-                    files.add(file)
-                  }
-                })
-              }
-            }
-
-            const foo =
+            // /private/var/folders/cm/pages/foo.tsx
+            // -> pages/foo
+            const entryPointName =
               basename(dirname(originRequest)) +
               sep +
               basename(originRequest, extname(originRequest))
-            const pagePath = getRouteFromEntrypoint(foo)
+            const pagePath = getRouteFromEntrypoint(entryPointName)
 
             if (!pagePath) {
               continue
             }
 
             assetMap.pages[pagePath] = [
-              ...new Set([...assetMap.pages[pagePath], ...Array.from(files)]),
+              ...new Set([...assetMap.pages[pagePath], ...files]),
             ]
           }
         }
