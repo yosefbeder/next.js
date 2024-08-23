@@ -20,6 +20,7 @@ export interface OverlayState {
   versionInfo: VersionInfo
   notFound: boolean
   staticIndicator: boolean
+  debugInfo: any
 }
 
 export const ACTION_STATIC_INDICATOR = 'static-indicator'
@@ -63,6 +64,11 @@ export interface UnhandledRejectionAction {
   frames: StackFrame[]
 }
 
+export interface DebugInfoAction {
+  type: 'DEBUG_INFO'
+  debugInfo: any
+}
+
 interface VersionInfoAction {
   type: typeof ACTION_VERSION_INFO
   versionInfo: VersionInfo
@@ -77,6 +83,7 @@ export type BusEvent =
   | UnhandledRejectionAction
   | VersionInfoAction
   | StaticIndicatorAction
+  | DebugInfoAction
 
 function pushErrorFilterDuplicates(
   errors: SupportedErrorEvent[],
@@ -100,11 +107,15 @@ export const INITIAL_OVERLAY_STATE: OverlayState = {
   refreshState: { type: 'idle' },
   rootLayoutMissingTags: [],
   versionInfo: { installed: '0.0.0', staleness: 'unknown' },
+  debugInfo: null,
 }
 
 export function useErrorOverlayReducer() {
   return useReducer((_state: OverlayState, action: BusEvent): OverlayState => {
     switch (action.type) {
+      case 'DEBUG_INFO': {
+        return { ..._state, debugInfo: action.debugInfo }
+      }
       case ACTION_STATIC_INDICATOR: {
         return { ..._state, staticIndicator: action.staticIndicator }
       }

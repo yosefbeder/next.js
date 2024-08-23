@@ -39,6 +39,7 @@ export type ErrorsProps = {
   initialDisplayState: DisplayState
   versionInfo?: VersionInfo
   hasStaticIndicator?: boolean
+  debugInfo?: any
 }
 
 type ReadyErrorEvent = ReadyRuntimeError
@@ -71,6 +72,7 @@ export function Errors({
   initialDisplayState,
   versionInfo,
   hasStaticIndicator,
+  debugInfo,
 }: ErrorsProps) {
   const [lookups, setLookups] = useState(
     {} as { [eventId: string]: ReadyErrorEvent }
@@ -272,6 +274,23 @@ export function Errors({
                 {readyErrors.length < 2 ? '' : 's'}
               </small>
               <VersionStalenessInfo versionInfo={versionInfo} />
+              <span>
+                {Boolean(debugInfo?.devtoolsFrontendUrl) && (
+                  <button
+                    className="nextjs__container_errors_inspect_copy_button"
+                    title="Copy DevTools URL to clipboard"
+                    onClick={(e) => {
+                      // copy to clipboard
+                      e.preventDefault()
+                      navigator.clipboard.writeText(
+                        debugInfo.devtoolsFrontendUrl
+                      )
+                    }}
+                  >
+                    {'🔍'}
+                  </button>
+                )}
+              </span>
             </LeftRightDialogHeader>
             <h1 id="nextjs__container_errors_label">
               {isServerError ? 'Server Error' : 'Unhandled Runtime Error'}
@@ -423,5 +442,16 @@ export const styles = css`
     position: absolute;
     top: 0;
     right: 0;
+  }
+  .nextjs__container_errors_inspect_copy_button {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--color-ansi-bright-white);
+    font-size: 1.5rem;
+    padding: 0;
+    margin: 0;
+    margin-left: var(--size-gap);
+    transition: opacity 0.25s ease;
   }
 `

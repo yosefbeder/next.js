@@ -53,6 +53,9 @@ export interface SyncAction {
   warnings: ReadonlyArray<CompilationError>
   versionInfo: VersionInfo
   updatedModules?: ReadonlyArray<string>
+  debug?: {
+    devtoolsFrontendUrl: string | undefined
+  }
 }
 interface BuiltAction {
   action: HMR_ACTIONS_SENT_TO_BROWSER.BUILT

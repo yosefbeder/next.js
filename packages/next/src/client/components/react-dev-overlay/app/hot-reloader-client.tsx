@@ -39,6 +39,7 @@ export interface Dispatcher {
   onBuildOk(): void
   onBuildError(message: string): void
   onVersionInfo(versionInfo: VersionInfo): void
+  onDebugInfo(debugInfo: any): void
   onBeforeRefresh(): void
   onRefresh(): void
   onStaticIndicator(status: boolean): void
@@ -356,6 +357,7 @@ function processMessage(
 
       // Is undefined when it's a 'built' event
       if ('versionInfo' in obj) dispatcher.onVersionInfo(obj.versionInfo)
+      if ('debug' in obj) dispatcher.onDebugInfo(obj.debug)
 
       const hasErrors = Boolean(errors && errors.length)
       // Compilation with errors (e.g. syntax error or missing modules).
@@ -529,6 +531,9 @@ export default function HotReload({
       },
       onStaticIndicator(status: boolean) {
         dispatch({ type: ACTION_STATIC_INDICATOR, staticIndicator: status })
+      },
+      onDebugInfo(debugInfo) {
+        dispatch({ type: 'DEBUG_INFO', debugInfo })
       },
     }
   }, [dispatch])
