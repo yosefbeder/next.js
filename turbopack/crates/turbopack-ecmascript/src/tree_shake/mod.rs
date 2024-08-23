@@ -10,7 +10,7 @@ use swc_core::{
             ExportAll, ExportNamedSpecifier, Id, Ident, ImportDecl, Module, ModuleDecl,
             ModuleExportName, ModuleItem, NamedExport, Program,
         },
-        codegen::{text_writer::JsWriter, to_code, Emitter},
+        codegen::{text_writer::JsWriter, Emitter},
     },
 };
 use turbo_tasks::{RcStr, ValueToString, Vc};
@@ -459,7 +459,6 @@ pub(super) async fn split(
         } => {
             // If the script file is a common js file, we cannot split the module
             if util::should_skip_tree_shaking(program) {
-                eprintln!("Skip:\n{}", to_code(program));
                 return Ok(SplitResult::Failed {
                     parse_result: parsed,
                 }
@@ -487,13 +486,6 @@ pub(super) async fn split(
                 modules,
                 star_reexports,
             } = dep_graph.split_module(&items);
-
-            eprintln!("# Program\n{}", to_code(program));
-
-            for (idx, module) in modules.iter().enumerate() {
-                let code = to_code(module);
-                eprintln!("# Module {idx}: \n{}", code);
-            }
 
             assert_ne!(modules.len(), 0, "modules.len() == 0;\nModule: {module:?}",);
 
