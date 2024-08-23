@@ -62,7 +62,6 @@ import { getProperError } from '../../lib/is-error'
 import ws from 'next/dist/compiled/ws'
 import { existsSync, promises as fs } from 'fs'
 import type { UnwrapPromise } from '../../lib/coalesced-function'
-import { getRegistry } from '../../lib/helpers/get-registry'
 import { parseVersionInfo } from './parse-version-info'
 import type { VersionInfo } from './parse-version-info'
 import { isAPIRoute } from '../../lib/is-api-route'
@@ -202,11 +201,11 @@ export async function getVersionInfo(enabled: boolean): Promise<VersionInfo> {
   try {
     installed = require('next/package.json').version
 
-    const registry = getRegistry()
     let res
 
     try {
-      res = await fetch(`${registry}-/package/next/dist-tags`)
+      // use NPM registry regardless user using Yarn
+      res = await fetch('https://registry.npmjs.org/-/package/next/dist-tags')
     } catch {
       // ignore fetch errors
     }
@@ -250,6 +249,7 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
   private pagesMapping: { [key: string]: string } = {}
   private appDir?: string
   private telemetry: Telemetry
+  private resetFetch: () => void
   private versionInfo: VersionInfo = {
     staleness: 'unknown',
     installed: '0.0.0',
@@ -275,6 +275,7 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
       rewrites,
       appDir,
       telemetry,
+      resetFetch,
     }: {
       config: NextConfigComplete
       pagesDir?: string
@@ -285,6 +286,7 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
       rewrites: CustomRoutes['rewrites']
       appDir?: string
       telemetry: Telemetry
+      resetFetch: () => void
     }
   ) {
     this.hasAmpEntrypoints = false
@@ -302,6 +304,7 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
     this.edgeServerStats = null
     this.serverPrevDocumentHash = null
     this.telemetry = telemetry
+    this.resetFetch = resetFetch
 
     this.config = config
     this.previewProps = previewProps
@@ -405,10 +408,16 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
     })
   }
 
-  public onHMR(req: IncomingMessage, _socket: Duplex, head: Buffer) {
+  public onHMR(
+    req: IncomingMessage,
+    _socket: Duplex,
+    head: Buffer,
+    callback: (client: ws.WebSocket) => void
+  ) {
     wsServer.handleUpgrade(req, req.socket, head, (client) => {
       this.webpackHotMiddleware?.onHMR(client)
       this.onDemandEntries?.onHMR(client, () => this.hmrServerError)
+      callback(client)
 
       client.addEventListener('message', ({ data }) => {
         data = typeof data !== 'string' ? data.toString() : data
@@ -1360,6 +1369,7 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
         changedCSSImportPages.size ||
         reloadAfterInvalidation
       ) {
+        this.resetFetch()
         this.refreshServerComponents()
       }
 

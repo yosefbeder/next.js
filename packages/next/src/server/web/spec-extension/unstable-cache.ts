@@ -8,6 +8,11 @@ import {
 } from '../../lib/patch-fetch'
 import { staticGenerationAsyncStorage } from '../../../client/components/static-generation-async-storage.external'
 import { requestAsyncStorage } from '../../../client/components/request-async-storage.external'
+import {
+  CachedRouteKind,
+  IncrementalCacheKind,
+  type CachedFetchData,
+} from '../../response-cache'
 
 type Callback = (...args: any[]) => Promise<any>
 
@@ -25,14 +30,14 @@ async function cacheNewResult<T>(
   await incrementalCache.set(
     cacheKey,
     {
-      kind: 'FETCH',
+      kind: CachedRouteKind.FETCH,
       data: {
         headers: {},
         // TODO: handle non-JSON values?
         body: JSON.stringify(result),
         status: 200,
         url: '',
-      },
+      } satisfies CachedFetchData,
       revalidate: typeof revalidate !== 'number' ? CACHE_ONE_YEAR : revalidate,
     },
     {
@@ -127,7 +132,7 @@ export function unstable_cache<T extends Callback>(
     // @TODO stringify is likely not safe here. We will coerce undefined to null which will make
     // the keyspace smaller than the execution space
     const invocationKey = `${fixedKey}-${JSON.stringify(args)}`
-    const cacheKey = await incrementalCache.fetchCacheKey(invocationKey)
+    const cacheKey = await incrementalCache.generateCacheKey(invocationKey)
     // $urlWithPath,$sortedQueryStringKeys,$hashOfEveryThingElse
     const fetchUrl = `unstable_cache ${pathname}${sortedSearch.length ? '?' : ''}${sortedSearch} ${cb.name ? ` ${cb.name}` : cacheKey}`
     const fetchIdx =
@@ -185,17 +190,18 @@ export function unstable_cache<T extends Callback>(
       ) {
         // We attempt to get the current cache entry from the incremental cache.
         const cacheEntry = await incrementalCache.get(cacheKey, {
-          kindHint: 'fetch',
+          kind: IncrementalCacheKind.FETCH,
           revalidate: options.revalidate,
           tags,
           softTags: implicitTags,
           fetchIdx,
           fetchUrl,
+          isFallback: false,
         })
 
         if (cacheEntry && cacheEntry.value) {
           // The entry exists and has a value
-          if (cacheEntry.value.kind !== 'FETCH') {
+          if (cacheEntry.value.kind !== CachedRouteKind.FETCH) {
             // The entry is invalid and we need a special warning
             // @TODO why do we warn this way? Should this just be an error? How are these errors surfaced
             // so bugs can be reported
@@ -267,15 +273,19 @@ export function unstable_cache<T extends Callback>(
         cb,
         ...args
       )
-      cacheNewResult(
-        result,
-        incrementalCache,
-        cacheKey,
-        tags,
-        options.revalidate,
-        fetchIdx,
-        fetchUrl
-      )
+
+      if (!staticGenerationStore.isDraftMode) {
+        cacheNewResult(
+          result,
+          incrementalCache,
+          cacheKey,
+          tags,
+          options.revalidate,
+          fetchIdx,
+          fetchUrl
+        )
+      }
+
       return result
     } else {
       noStoreFetchIdx += 1
@@ -294,17 +304,18 @@ export function unstable_cache<T extends Callback>(
           addImplicitTags(staticGenerationStore, requestStore)
 
         const cacheEntry = await incrementalCache.get(cacheKey, {
-          kindHint: 'fetch',
+          kind: IncrementalCacheKind.FETCH,
           revalidate: options.revalidate,
           tags,
           fetchIdx,
           fetchUrl,
           softTags: implicitTags,
+          isFallback: false,
         })
 
         if (cacheEntry && cacheEntry.value) {
           // The entry exists and has a value
-          if (cacheEntry.value.kind !== 'FETCH') {
+          if (cacheEntry.value.kind !== CachedRouteKind.FETCH) {
             // The entry is invalid and we need a special warning
             // @TODO why do we warn this way? Should this just be an error? How are these errors surfaced
             // so bugs can be reported
@@ -340,7 +351,6 @@ export function unstable_cache<T extends Callback>(
           route: '/',
           page: '/',
           isStaticGeneration: false,
-          prerenderState: null,
         },
         cb,
         ...args
