@@ -4,6 +4,8 @@
 #![feature(arbitrary_self_types)]
 #![feature(iter_intersperse)]
 
+// a fake next-swc change
+
 pub mod app_segment_config;
 pub mod app_structure;
 mod bootstrap;
