@@ -274,12 +274,9 @@ export default class BuildManifestPlugin {
         if (SYSTEM_ENTRYPOINTS.has(entrypoint.name)) continue
         const pagePath = getRouteFromEntrypoint(entrypoint.name)
 
-        if (!pagePath) {
-          continue
-        }
+        if (!pagePath) continue
 
         const filesForPage = getEntrypointFiles(entrypoint)
-
         assetMap.pages[pagePath] = [...new Set([...mainFiles, ...filesForPage])]
       }
 
@@ -311,22 +308,31 @@ export default class BuildManifestPlugin {
           if (dependency.type.startsWith('import()')) {
             const originRequest =
               compilation.moduleGraph.getParentModule(dependency)?.resource
-            if (!originRequest) return
+            if (!originRequest) continue
 
             // /private/var/folders/cm/pages/foo.tsx
-            // -> pages/foo
-            const entryPointName =
-              basename(dirname(originRequest)) +
-              sep +
-              basename(originRequest, extname(originRequest))
-            const pagePath = getRouteFromEntrypoint(entryPointName)
+            // -> pages
+            const lastDirname = basename(dirname(originRequest))
+            if (lastDirname !== 'pages') continue
 
-            if (!pagePath) {
-              continue
-            }
+            // /private/var/folders/cm/pages/foo.tsx
+            // -> foo
+            const filenameWithoutExt = basename(
+              originRequest,
+              extname(originRequest)
+            )
+
+            // entrypoint.name looks like this: `pages/foo`
+            // so we manually convert originRequest to entrypoint name-like string.
+            const entryPointName = lastDirname + sep + filenameWithoutExt
+            const pagePath = getRouteFromEntrypoint(entryPointName)
+            if (!pagePath) continue
+
+            const currentAssetMapPages = assetMap.pages[pagePath]
+            if (!currentAssetMapPages) continue
 
             assetMap.pages[pagePath] = [
-              ...new Set([...assetMap.pages[pagePath], ...files]),
+              ...new Set([...currentAssetMapPages, ...files]),
             ]
           }
         }
