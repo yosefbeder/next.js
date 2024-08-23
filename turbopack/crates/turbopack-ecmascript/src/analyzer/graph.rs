@@ -21,7 +21,7 @@ use super::{
     WellKnownFunctionKind,
 };
 use crate::{
-    analyzer::is_unresolved,
+    analyzer::{is_unresolved, WellKnownObjectKind},
     utils::{unparen, AstPathRange},
 };
 
@@ -704,6 +704,12 @@ impl EvalContext {
                         .collect(),
                 )
             }
+
+            // TODO should this just be all well known objects/etc?
+            Expr::MetaProp(MetaPropExpr {
+                kind: MetaPropKind::ImportMeta,
+                ..
+            }) => JsValue::WellKnownObject(WellKnownObjectKind::ImportMeta),
 
             _ => JsValue::unknown_empty(true, "unsupported expression"),
         }
