@@ -957,8 +957,11 @@ impl<C: Comments> VisitMut for ServerActions<C> {
             let find_source_map_url_ident = private_ident!("findSourceMapURL");
 
             if !self.config.is_react_server_layer {
-                // import { createServerReference } from
-                // 'private-next-rsc-action-client-wrapper'
+                // import {
+                //   createServerReference,
+                //   callServer,
+                //   findSourceMapURL
+                // } from 'private-next-rsc-action-client-wrapper'
                 // createServerReference("action_id")
                 new.push(ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
                     span: DUMMY_SP,
@@ -991,6 +994,7 @@ impl<C: Comments> VisitMut for ServerActions<C> {
                     with: None,
                     phase: Default::default(),
                 })));
+                new.rotate_right(1);
             }
 
             for (id, export_name) in self.exported_idents.iter() {
@@ -1202,7 +1206,7 @@ impl<C: Comments> VisitMut for ServerActions<C> {
                 new.rotate_right(2);
             } else {
                 // Make it the first item
-                new.rotate_right(1);
+                // new.rotate_right(1);
             }
         }
 
