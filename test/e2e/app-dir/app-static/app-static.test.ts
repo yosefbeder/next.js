@@ -3101,20 +3101,34 @@ describe('app-dir static/dynamic handling', () => {
       expect(res.status).toBe(200)
 
       const html = await res.text()
-      const $ = cheerio.load(html)
+      let $ = cheerio.load(html)
 
       expect(JSON.parse($('#params').text())).toEqual({ slug: 'random' })
       expect(JSON.parse($('#headers').text())).toEqual([])
       expect(JSON.parse($('#cookies').text())).toEqual([])
 
-      const firstTime = $('#now').text()
-
       if (!(global as any).isNextDev) {
-        const res2 = await next.fetch('/force-static/random')
-        expect(res2.status).toBe(200)
+        if (process.env.__NEXT_EXPERIMENTAL_PPR) {
+          // When PPR is enabled, we first encounter the fallback shell. We do
+          // expect though that the page does not change after the dynamic shell
+          // has been finalized.
+          await retry(async () => {
+            $ = await next.render$('/force-static/random')
 
-        const $2 = cheerio.load(await res2.text())
-        expect(firstTime).toBe($2('#now').text())
+            const first = $('#now').text()
+
+            $ = await next.render$('/force-static/random')
+
+            // The page should not change after the dynamic shell has been
+            // finalized.
+            expect($('#now').text()).toBe(first)
+          })
+        } else {
+          const first = $('#now').text()
+
+          $ = await next.render$('/force-static/random')
+          expect($('#now').text()).toBe(first)
+        }
       }
     })
   }
