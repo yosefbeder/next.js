@@ -399,6 +399,8 @@ export class IncrementalCache implements IncrementalCacheType {
       return null
     }
 
+    const { isFallback } = ctx
+
     cacheKey = this._getPathname(
       cacheKey,
       ctx.kind === IncrementalCacheKind.FETCH
@@ -433,7 +435,8 @@ export class IncrementalCache implements IncrementalCacheType {
           revalidate: revalidate,
         },
         revalidateAfter: Date.now() + revalidate * 1000,
-      }
+        isFallback,
+      } satisfies IncrementalCacheEntry
     }
 
     const curRevalidate = this.revalidateTimings.get(toRoute(cacheKey))
@@ -463,6 +466,7 @@ export class IncrementalCache implements IncrementalCacheType {
         curRevalidate,
         revalidateAfter,
         value: cacheData.value,
+        isFallback,
       }
     }
 
@@ -480,6 +484,7 @@ export class IncrementalCache implements IncrementalCacheType {
         value: null,
         curRevalidate,
         revalidateAfter,
+        isFallback,
       }
       this.set(cacheKey, entry.value, ctx)
     }
