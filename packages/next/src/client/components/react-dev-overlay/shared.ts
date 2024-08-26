@@ -31,6 +31,7 @@ export const ACTION_REFRESH = 'fast-refresh'
 export const ACTION_VERSION_INFO = 'version-info'
 export const ACTION_UNHANDLED_ERROR = 'unhandled-error'
 export const ACTION_UNHANDLED_REJECTION = 'unhandled-rejection'
+export const ACTION_DEBUG_INFO = 'debug-info'
 
 interface StaticIndicatorAction {
   type: typeof ACTION_STATIC_INDICATOR
@@ -65,7 +66,7 @@ export interface UnhandledRejectionAction {
 }
 
 export interface DebugInfoAction {
-  type: 'DEBUG_INFO'
+  type: typeof ACTION_DEBUG_INFO
   debugInfo: any
 }
 
@@ -113,7 +114,7 @@ export const INITIAL_OVERLAY_STATE: OverlayState = {
 export function useErrorOverlayReducer() {
   return useReducer((_state: OverlayState, action: BusEvent): OverlayState => {
     switch (action.type) {
-      case 'DEBUG_INFO': {
+      case ACTION_DEBUG_INFO: {
         return { ..._state, debugInfo: action.debugInfo }
       }
       case ACTION_STATIC_INDICATOR: {

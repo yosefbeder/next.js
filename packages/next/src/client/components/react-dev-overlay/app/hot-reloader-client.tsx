@@ -7,6 +7,7 @@ import {
   ACTION_BEFORE_REFRESH,
   ACTION_BUILD_ERROR,
   ACTION_BUILD_OK,
+  ACTION_DEBUG_INFO,
   ACTION_REFRESH,
   ACTION_STATIC_INDICATOR,
   ACTION_UNHANDLED_ERROR,
@@ -533,7 +534,7 @@ export default function HotReload({
         dispatch({ type: ACTION_STATIC_INDICATOR, staticIndicator: status })
       },
       onDebugInfo(debugInfo) {
-        dispatch({ type: 'DEBUG_INFO', debugInfo })
+        dispatch({ type: ACTION_DEBUG_INFO, debugInfo })
       },
     }
   }, [dispatch])
