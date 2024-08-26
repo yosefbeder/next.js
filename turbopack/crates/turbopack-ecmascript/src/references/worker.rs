@@ -132,7 +132,13 @@ impl CodeGenerateable for WorkerAssetReference {
                 if let Some(args) = args {
                     match args.into_iter().next() {
                         Some(ExprOrSpread { spread: None, expr: key_expr }) => {
-                            *expr = pm.create_import(*key_expr, import_externals);
+                            if let PatternMapping::Single(pm) = &*pm {
+                                *expr = *quote_expr!(
+                                    "new Worker($url)",
+                                    url: Expr = Expr::Lit(Lit::Str(format!("{:?}", pm).into()))
+                                );
+                            }
+                            // *expr = pm.create_import(*key_expr, import_externals);
                             return;
                         }
                         // These are SWC bugs: https://github.com/swc-project/swc/issues/5394
