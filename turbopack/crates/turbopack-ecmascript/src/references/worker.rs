@@ -15,7 +15,7 @@ use turbopack_core::{
 };
 use turbopack_resolve::ecmascript::{esm_resolve, try_to_severity};
 
-use super::pattern_mapping::{PatternMapping, ResolveType};
+use super::pattern_mapping::{PatternMapping, ResolveType, SinglePatternMapping};
 use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     create_visitor,
@@ -104,14 +104,7 @@ impl CodeGenerateable for WorkerAssetReference {
             self.origin,
             Vc::upcast(chunking_context),
             worker_resolve_reference_inline(self),
-            if matches!(
-                *chunking_context.environment().chunk_loading().await?,
-                ChunkLoading::Edge
-            ) {
-                Value::new(ResolveType::ChunkItem)
-            } else {
-                Value::new(ResolveType::AsyncChunkLoader)
-            },
+            Value::new(ResolveType::ChunkItem),
         );
         println!(
             "pm {:?} {:?} {:?} {:?}",
@@ -132,10 +125,11 @@ impl CodeGenerateable for WorkerAssetReference {
                 if let Some(args) = args {
                     match args.into_iter().next() {
                         Some(ExprOrSpread { spread: None, expr: key_expr }) => {
-                            if let PatternMapping::Single(pm) = &*pm {
+                            if let PatternMapping::Single(pm/* SinglePatternMapping::Module(m) */) = &*pm {
                                 *expr = *quote_expr!(
-                                    "new Worker($url)",
-                                    url: Expr = Expr::Lit(Lit::Str(format!("{:?}", pm).into()))
+                                    "new Worker(__turbopack_resolve_module_id_path__($url))",
+                                    url: Expr = pm.create_id(std::borrow::Cow::Borrowed(&*key_expr))
+                                    // url: Expr = Expr::Lit(Lit::Str(format!("{}", m).into()))
                                 );
                             }
                             // *expr = pm.create_import(*key_expr, import_externals);

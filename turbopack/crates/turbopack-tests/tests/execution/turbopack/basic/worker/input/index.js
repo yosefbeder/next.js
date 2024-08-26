@@ -2,6 +2,11 @@
 // globalThis.Worker = (Date.now() > 0 ? require : 'unused')(
 //   'node:worker_threads'
 // ).Worker
+globalThis.Worker = class {
+  constructor(x){
+    console.log("Worker", x);
+  }
+}
 
 it('supports workers', async () => {
    new Worker(new URL('./worker.ts', import.meta.url))
