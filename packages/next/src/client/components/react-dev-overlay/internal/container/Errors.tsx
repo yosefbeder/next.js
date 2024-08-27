@@ -28,6 +28,8 @@ import {
   type HydrationErrorState,
   getHydrationWarningType,
 } from '../helpers/hydration-error-info'
+import NodeJsIcon from '../components/icons/nodejs'
+import { CopyButton } from '../components/copy-button'
 
 export type SupportedErrorEvent = {
   id: number
@@ -274,27 +276,33 @@ export function Errors({
                 {readyErrors.length < 2 ? '' : 's'}
               </small>
               <VersionStalenessInfo versionInfo={versionInfo} />
+            </LeftRightDialogHeader>
+
+            <div className="nextjs__container_errors__error_title">
+              <h1
+                id="nextjs__container_errors_label"
+                className="nextjs__container_errors_label"
+              >
+                {isServerError ? 'Server Error' : 'Unhandled Runtime Error'}
+              </h1>
               <span>
-                {Boolean(debugInfo?.devtoolsFrontendUrl) && (
-                  <button
-                    className="nextjs__container_errors_inspect_copy_button"
-                    title="Copy DevTools URL to clipboard"
-                    onClick={(e) => {
-                      // copy to clipboard
-                      e.preventDefault()
-                      navigator.clipboard.writeText(
-                        debugInfo.devtoolsFrontendUrl
-                      )
-                    }}
-                  >
-                    {'🔍'}
-                  </button>
+                {error.stack && (
+                  <CopyButton
+                    actionLabel="Copy error stack"
+                    successLabel="Copied"
+                    content={error.stack}
+                  />
+                )}
+                {debugInfo?.devtoolsFrontendUrl && (
+                  <CopyButton
+                    actionLabel="Copy Chrome DevTools URL"
+                    successLabel="Copied"
+                    content={debugInfo.devtoolsFrontendUrl}
+                    icon={<NodeJsIcon width={16} height={16} />}
+                  />
                 )}
               </span>
-            </LeftRightDialogHeader>
-            <h1 id="nextjs__container_errors_label">
-              {isServerError ? 'Server Error' : 'Unhandled Runtime Error'}
-            </h1>
+            </div>
             <p
               id="nextjs__container_errors_desc"
               className="nextjs__container_errors_desc"
@@ -453,5 +461,10 @@ export const styles = css`
     margin: 0;
     margin-left: var(--size-gap);
     transition: opacity 0.25s ease;
+  }
+  .nextjs__container_errors__error_title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 `

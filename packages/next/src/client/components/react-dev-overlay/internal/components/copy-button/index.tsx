@@ -14,11 +14,13 @@ export function CopyButton({
   actionLabel,
   successLabel,
   content,
+  icon,
   ...props
 }: React.HTMLProps<HTMLButtonElement> & {
   actionLabel: string
   successLabel: string
   content: string
+  icon?: React.ReactNode
 }) {
   const [copyState, dispatch, isPending] = React.useActionState(
     (
@@ -80,8 +82,10 @@ export function CopyButton({
   const isDisabled = isPending
   const label = copyState.state === 'success' ? successLabel : actionLabel
   const title = label
-  const icon =
-    copyState.state === 'success' ? <CopySuccessIcon /> : <CopyIcon />
+
+  // Assign default icon
+  const renderedIcon =
+    copyState.state === 'success' ? <CopySuccessIcon /> : icon || <CopyIcon />
 
   return (
     <button
@@ -100,7 +104,7 @@ export function CopyButton({
         }
       }}
     >
-      {icon}
+      {renderedIcon}
       {copyState.state === 'error' ? ` ${copyState.error}` : null}
     </button>
   )

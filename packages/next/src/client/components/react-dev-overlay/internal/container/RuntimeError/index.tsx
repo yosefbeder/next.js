@@ -4,7 +4,6 @@ import type { ReadyRuntimeError } from '../../helpers/getErrorByType'
 import { noop as css } from '../../helpers/noop-template'
 import { groupStackFramesByFramework } from '../../helpers/group-stack-frames-by-framework'
 import { GroupedStackFrames } from './GroupedStackFrames'
-import { CopyButton } from '../../components/copy-button'
 
 export type RuntimeErrorProps = { error: ReadyRuntimeError }
 
@@ -76,16 +75,7 @@ export function RuntimeError({ error }: RuntimeErrorProps) {
 
       {stackFramesGroupedByFramework.length ? (
         <React.Fragment>
-          <h2>
-            Call Stack
-            {error.error.stack && (
-              <CopyButton
-                actionLabel="Copy error stack"
-                successLabel="Copied"
-                content={error.error.stack}
-              />
-            )}
-          </h2>
+          <h2>Call Stack</h2>
 
           <GroupedStackFrames
             groupedStackFrames={stackFramesGroupedByFramework}
