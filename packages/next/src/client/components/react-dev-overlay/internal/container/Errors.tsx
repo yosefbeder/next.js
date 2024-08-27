@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   ACTION_UNHANDLED_ERROR,
   ACTION_UNHANDLED_REJECTION,
+  type DebugInfo,
   type UnhandledErrorAction,
   type UnhandledRejectionAction,
 } from '../../shared'
@@ -41,7 +42,7 @@ export type ErrorsProps = {
   initialDisplayState: DisplayState
   versionInfo?: VersionInfo
   hasStaticIndicator?: boolean
-  debugInfo?: any
+  debugInfo?: DebugInfo
 }
 
 type ReadyErrorEvent = ReadyRuntimeError

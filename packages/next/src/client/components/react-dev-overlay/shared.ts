@@ -11,6 +11,10 @@ type FastRefreshState =
   /** The refresh process has been triggered, but the new code has not been executed yet. */
   | { type: 'pending'; errors: SupportedErrorEvent[] }
 
+export type DebugInfo = {
+  devtoolsFrontendUrl: string | undefined
+}
+
 export interface OverlayState {
   nextId: number
   buildError: string | null
@@ -20,7 +24,7 @@ export interface OverlayState {
   versionInfo: VersionInfo
   notFound: boolean
   staticIndicator: boolean
-  debugInfo: any
+  debugInfo: DebugInfo | undefined
 }
 
 export const ACTION_STATIC_INDICATOR = 'static-indicator'
@@ -108,7 +112,7 @@ export const INITIAL_OVERLAY_STATE: OverlayState = {
   refreshState: { type: 'idle' },
   rootLayoutMissingTags: [],
   versionInfo: { installed: '0.0.0', staleness: 'unknown' },
-  debugInfo: null,
+  debugInfo: undefined,
 }
 
 export function useErrorOverlayReducer() {

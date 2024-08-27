@@ -759,7 +759,7 @@ export default class HotReloaderWebpack implements NextJsHotReloaderInterface {
       let debugInfo
       try {
         const debugInfoList = await fetch(
-          `http://127.0.0.1:${debugPort}/json/list`
+          `http://localhost:${debugPort}/json/list`
         ).then((res) => res.json())
         debugInfo = debugInfoList[0]
       } catch {}
